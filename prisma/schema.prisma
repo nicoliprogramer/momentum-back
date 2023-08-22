@@ -1,0 +1,43 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model user {
+  id                                           Int           @id @default(autoincrement())
+  email                                        String        @unique(map: "email") @db.VarChar(255)
+  username                                     String        @unique(map: "username") @db.VarChar(255)
+  password                                     String?       @db.VarChar(255)
+  shared_todo_shared_todo_user_idTouser        shared_todo[] @relation("shared_todo_user_idTouser")
+  shared_todo_shared_todo_shared_with_idTouser shared_todo[] @relation("shared_todo_shared_with_idTouser")
+  todo                                         todo[]
+}
+
+model todo {
+  id          Int           @id @default(autoincrement())
+  title       String?       @db.VarChar(255)
+  completed   Boolean?      @default(false)
+  user_id     Int
+  shared_todo shared_todo[]
+  user        user          @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "todo_ibfk_1")
+
+  @@index([user_id], map: "user_id")
+}
+
+model shared_todo {
+  id                                    Int   @id @default(autoincrement())
+  todo_id                               Int?
+  user_id                               Int?
+  shared_with_id                        Int?
+  todo                                  todo? @relation(fields: [todo_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "shared_todo_ibfk_1")
+  user_shared_todo_user_idTouser        user? @relation("shared_todo_user_idTouser", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "shared_todo_ibfk_2")
+  user_shared_todo_shared_with_idTouser user? @relation("shared_todo_shared_with_idTouser", fields: [shared_with_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "shared_todo_ibfk_3")
+
+  @@index([shared_with_id], map: "shared_with_id")
+  @@index([todo_id], map: "todo_id")
+  @@index([user_id], map: "user_id")
+}
