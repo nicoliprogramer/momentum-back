@@ -1,56 +1,72 @@
 import { Controller, Get, Param, Put, Delete, Post, Body} from '@nestjs/common';
 import { TodosService } from './todos.service';
-
+import { CreateTodoDto } from './dto/create-todo.dto';
+import { ShareTodoDto } from './dto/share-todo.dto';
+import { UpdateTodoDto } from './dto/update-todo.dto';
 @Controller('')
 export class TodosController {
    constructor(private readonly todosService: TodosService){}
 
- @Get('/todos/:id')
-    async getTodosById(@Param('id') id: string) {
-    const todos = await this.todosService.getTodosById(id);
-    return todos
+  @Post('todos/create')
+  async createTodo(@Body() todo: CreateTodoDto) {
+    return await this.todosService.createTodo(todo)
   }
 
-@Get('/todos/shared_todos/:id')
- async todos(@Param('id') id: string) {
- const todo = await this.todosService.getSharedTodoById(id);
- const author = await this.todosService.getUserById(todo.user_id);
- const shared_with = await this.todosService.getUserById(todo.shared_with_id);
- return {
-   statusCode: 200,
-   data: author,shared_with
- }
-}
+  @Get('todos/:id')
+      async getTodosById(@Param('id') id: string) {
+      const todos = await this.todosService.getTodosById(id);
+      return todos
+    }
 
-   @Get('/users/:id')
+  @Get('todos/shared_todos/:id')
+    async todos(@Param('id') id: string) {
+    const todo = await this.todosService.getSharedTodoById(id);
+    const author = await this.todosService.getUserById(todo.user_id);
+    const shared_with = await this.todosService.getUserById(todo.shared_with_id);
+  return {
+    statusCode: 200,
+    author, shared_with
+  }
+  }
+
+   @Get('users/:id')
     async getUserById(@Param('id') id: string) {
     const user = await this.todosService.getUserById(id);
-    return user
-  }
+    return { 
+      statusCode:200,
+      user
+    }
+   }
 
-  @Put('/todos/:id')
-    async toggleCompleted(@Param('id') id: string, value: boolean) {
-    const todo = await this.todosService.toggleCompleted(id, value)
+  @Put('todos/:id')
+    async toggleCompleted(@Param('id') id: string, @Body('') todoCompleted: UpdateTodoDto) {
+    const todo = await this.todosService.toggleCompleted(id, todoCompleted)
     return todo
   }
 
-  @Delete('/todos/:id')
+  @Delete('todos/:id')
     async deleteTodo(@Param('id') id: string) {
     const todo = await this.todosService.deleteTodo(id)
     return todo
   }
 
-  @Post('/todos/shared_todos')
-    async post(@Body('') todo_id: string, user_id: string, email: string) {
-    const userToShare = await this.todosService.getUserByEmail(email);
-    const sharedTodo = await this.todosService.shareTodo(todo_id, user_id, userToShare);
-    return sharedTodo
+  @Post('todos/shared_todos')
+    async shareTodo(@Body('') todo: ShareTodoDto) {
+    const userToShare = await this.todosService.getUserByEmail(todo.email);
+    const sharedTodo = await this.todosService.shareTodo(todo, userToShare);
+     return { 
+       statusCode:201,
+       sharedTodo
+      }
   }
 
-  @Post('/todos')
-    async createTodo(@Body() user_id: string, title: string) {
-    const todo = await this.todosService.createTodo(user_id, title)
-    return todo
+  @Post('users')
+    async getUser(@Body('') todo: ShareTodoDto) {
+    const userToShare = await this.todosService.getUserByEmail(todo.email);
+     return { 
+       statusCode:201,
+       userToShare
+      }
   }
 }
 

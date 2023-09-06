@@ -1,5 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { CreateTodoDto } from './dto/create-todo.dto';
+import { ShareTodoDto } from './dto/share-todo.dto';
+import { UpdateTodoDto } from './dto/update-todo.dto';
 
  export interface SharedTodo {
       id: string;
@@ -41,11 +44,12 @@ async getUserById(id: string): Promise<SharedTodo | null>  {
 
   async getTodosById(id: string) {
     try {
-      const query = await this.prisma.$queryRaw`SELECT todo.*, shared_todo.shared_with_id
+    const query = await this.prisma.$queryRaw`SELECT todo.*, shared_todo.shared_with_id
     FROM todo
     LEFT JOIN shared_todo ON todo.id = shared_todo.todo_id
     WHERE todo.user_id = ${id} OR shared_todo.shared_with_id = ${id}`;
-    return{
+    return {
+      statusCode: 200,
       query
     }
     } catch (error) {
@@ -75,13 +79,14 @@ async getUserById(id: string): Promise<SharedTodo | null>  {
     }
   }
 
-  async createTodo(user_id: string, title: string) {
+  async createTodo(todo: CreateTodoDto) {
     try {
-      const query = await this.prisma.$queryRaw` INSERT INTO todo (user_id, title)
-    VALUES (${user_id}, ${title})`;
-    return{
-      query
-    }
+      const createTodo = await this.prisma.$executeRaw`INSERT INTO todo(user_id, title)
+      VALUES(${todo.user_id}, ${todo.title})`;
+      return {
+      statusCode: 201,
+      createTodo
+    };
     } catch (error) {
       throw error;
     }
@@ -90,19 +95,19 @@ async getUserById(id: string): Promise<SharedTodo | null>  {
   async deleteTodo(id: string) {
     try {
       const query = await this.prisma.$queryRaw`DELETE FROM todo WHERE id = ${id}`;
-    return{
+    return {
+      statusCode: 200,
       query
-    }
+    };
     } catch (error) {
       throw error;
     }
   }
 
-   async toggleCompleted(id: string, value: boolean) {
+   async toggleCompleted(id: string, todoCompleted: UpdateTodoDto) {
     try {
-      const newValue = value === true ? "TRUE" : "FALSE"
-      const query = await this.prisma.$queryRaw`UPDATE todo
-        SET completed = ${newValue} 
+      const query = await this.prisma.$executeRaw`UPDATE todo
+        SET completed = ${todoCompleted.completed} 
         WHERE id = ${id}`
     return{
       query
@@ -112,10 +117,11 @@ async getUserById(id: string): Promise<SharedTodo | null>  {
     }
   }
 
-   async shareTodo(todo_id: string, user_id: string, shared_with_id) {
+  async shareTodo(todo: ShareTodoDto, userToShare) {
     try {
-      const query = await this.prisma.$queryRaw`INSERT INTO shared_todo (todo_id, user_id, shared_with_id) 
-    VALUES (${todo_id}, ${user_id}, ${shared_with_id})`;
+      const userForShare = userToShare.query[0].id      
+      const query = await this.prisma.$executeRaw`INSERT INTO shared_todo (todo_id, user_id, shared_with_id) 
+    VALUES (${todo.todo_id}, ${todo.user_id}, ${userForShare})`;
     return{
       query
     }
