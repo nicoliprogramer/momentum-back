@@ -1,8 +1,11 @@
-import { Controller, Get, Param, Put, Delete, Post, Body} from '@nestjs/common';
+import { Controller, Get, Param, Put, Delete, Post, Body, UseGuards} from '@nestjs/common';
 import { TodosService } from './todos.service';
 import { CreateTodoDto } from './dto/create-todo.dto';
 import { ShareTodoDto } from './dto/share-todo.dto';
 import { UpdateTodoDto } from './dto/update-todo.dto';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard'
+import { ApiBearerAuth } from '@nestjs/swagger';
+
 @Controller('')
 export class TodosController {
    constructor(private readonly todosService: TodosService){}
@@ -18,7 +21,7 @@ export class TodosController {
       return todos
     }
 
-  @Get('todos/shared_todos/:id')
+   @Get('todos/shared_todos/:id')
     async todos(@Param('id') id: string) {
     const todo = await this.todosService.getSharedTodoById(id);
     const author = await this.todosService.getUserById(todo.user_id);
@@ -29,7 +32,7 @@ export class TodosController {
   }
   }
 
-   @Get('users/:id')
+    @Get('users/:id')
     async getUserById(@Param('id') id: string) {
     const user = await this.todosService.getUserById(id);
     return { 

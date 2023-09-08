@@ -27,4 +27,15 @@ export class UsersService {
       throw error;
     }
   }
+
+   async findOne(id: number) {
+    const dataUser = await this.prisma.user.findUnique({
+      where: {id}
+    })
+    return {
+      statusCode: 200,
+      data: dataUser
+    }
+
+  }
 }

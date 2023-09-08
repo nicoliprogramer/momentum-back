@@ -1,4 +1,3 @@
-
 export class UpdateTodoDto {
-    completed:boolean;
+    completed: boolean;
 }
