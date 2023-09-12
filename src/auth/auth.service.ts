@@ -19,14 +19,15 @@ export class AuthService {
         if (!userData) {
         throw new NotFoundException(`No user found for email: ${user.email}`);
         }
-
+        const id = userData.id
         const isMatch = await bcrypt.compare(user.password , userData.password)
         if(!isMatch){
             throw new BadRequestException("User not found");
             }
         const token = this.jwtService.sign({ userId: userData.id })
         return {
-        token
+        token,
+        id
         }
         }
         catch (error) {

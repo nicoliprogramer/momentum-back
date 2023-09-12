@@ -18,7 +18,9 @@ export class UsersService {
       }
     });
       const token = await jwt.sign({id: createData.id, username: createData.username}, process.env.TOKEN_SECRET)
+      const id = createData.id
     return{
+      id,
       token
     }
     } catch (error) {
